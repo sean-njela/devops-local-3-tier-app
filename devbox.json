@@ -1,0 +1,100 @@
+{
+  "packages": [
+    "openjdk8@latest",
+    "maven@latest",
+    "git@latest",
+    "vagrant@latest",
+    "virtualbox@latest",
+    "docker@latest",
+    "awscli2@latest",
+    "bash@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "echo 'Setting up development environment...'",
+      "export JAVA_HOME=$DEVBOX_PACKAGES_DIR/openjdk8/",
+      "export PATH=$JAVA_HOME/bin:$PATH",
+      "export MAVEN_HOME=$DEVBOX_PACKAGES_DIR/maven/",
+      "export PATH=$MAVEN_HOME/bin:$PATH",
+      "echo 'Java version:'",
+      "java -version",
+      "echo 'Maven version:'",
+      "mvn -version",
+      "echo 'Git version:'",
+      "git --version",
+      "echo 'Docker version:'",
+      "docker --version",
+      "echo 'AWS CLI version:'",
+      "aws --version",
+      "echo 'Vagrant version:'",
+      "vagrant --version",
+      "echo '================================='",
+      "echo 'Development environment ready! 🚀'",
+      "echo '================================='",
+      "echo 'Available commands:'",
+      "echo '  java, javac  - Java 8 JDK'",
+      "echo '  mvn          - Apache Maven'",
+      "echo '  git          - Git version control'",
+      "echo '  docker       - Docker containerization'",
+      "echo '  vagrant      - Vagrant VM management'",
+      "echo '  aws          - AWS CLI'",
+      "echo '================================='"
+    ],
+    "scripts": {
+      "setup-project": [
+        "echo 'Creating Maven project structure...'",
+        "mvn archetype:generate -DgroupId=com.example.app -DartifactId=my-app -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false",
+        "echo 'Project created successfully!'"
+      ],
+      "build": [
+        "echo 'Building Maven project...'",
+        "mvn clean compile"
+      ],
+      "test": [
+        "echo 'Running tests...'",
+        "mvn test"
+      ],
+      "package": [
+        "echo 'Packaging application...'",
+        "mvn package"
+      ],
+      "docker-build": [
+        "echo 'Building Docker image...'",
+        "docker build -t my-app:latest ."
+      ],
+      "vagrant-up": [
+        "echo 'Starting Vagrant VM...'",
+        "vagrant up"
+      ],
+      "vagrant-down": [
+        "echo 'Stopping Vagrant VM...'",
+        "vagrant halt"
+      ],
+      "aws-configure": [
+        "echo 'Configuring AWS CLI...'",
+        "aws configure"
+      ],
+      "dev-status": [
+        "echo '=== Development Environment Status ==='",
+        "echo 'Java:'",
+        "java -version 2>&1 | head -1",
+        "echo 'Maven:'",
+        "mvn -version | head -1",
+        "echo 'Git:'",
+        "git --version",
+        "echo 'Docker:'",
+        "docker --version 2>/dev/null || echo 'Docker not running'",
+        "echo 'AWS CLI:'",
+        "aws --version 2>&1 | head -1",
+        "echo 'Vagrant:'",
+        "vagrant --version",
+        "echo '==================================='"
+      ]
+    }
+  },
+  "env": {
+    "JAVA_HOME": "$DEVBOX_PACKAGES_DIR/openjdk8",
+    "MAVEN_HOME": "$DEVBOX_PACKAGES_DIR/maven",
+    "MAVEN_OPTS": "-Xmx1024m"
+  }
+}
