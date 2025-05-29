@@ -1,3 +1,5 @@
+[![Built with Devbox](https://www.jetify.com/img/devbox/shield_moon.svg)](https://www.jetify.com/devbox/docs/contributor-quickstart/)
+
 ## **Project Overview**
 Automated the local deployment of a Java-based social networking site. The application consists of a 3-tier architecture with load balancing, caching, message queuing, and persistent storage.
 
