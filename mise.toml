@@ -2,40 +2,82 @@
 min_version = "2024.1.1"
 
 [env]
-# Add Maven and Java to PATH
-_.path = ["{{config_root}}/bin", "./target"]
-JAVA_HOME = "{{mise_prefix}}/java"
-MAVEN_HOME = "{{mise_prefix}}/maven" 
-MAVEN_OPTS = "-Xmx1024m -XX:MaxPermSize=256m"
+# Environment variables - using correct template syntax
+MAVEN_OPTS = "-Xmx1024m"
 
 [tools]
-# Core development tools
-java = "openjdk-8"
+# Core development tools - using correct versions
+java = "8"  # or "openjdk-8" - let's try the simpler format first
 maven = "latest"
-git = "latest"
-
-# Container and virtualization
-docker = "latest"
-vagrant = "latest"
 
 # Cloud tools  
 awscli = "latest"
 
 # Utility tools
 jq = "latest"
-curl = "latest"
 
-# Task configuration
-[task_config]
-includes = ["tasks/*.toml"]
+# Note: git, docker, vagrant need to be installed separately as they're not in mise core
 
-# Built-in tasks
+[tasks.install-system-tools]
+description = "Install system tools not available in mise"
+run = [
+  "echo '🔧 Installing system tools...'",
+  "echo 'Checking for Git...'",
+  "if ! command -v git &> /dev/null; then",
+  "  echo 'Installing Git...'",
+  "  if [[ \"$OSTYPE\" == \"linux-gnu\"* ]]; then",
+  "    sudo apt update && sudo apt install -y git",
+  "  elif [[ \"$OSTYPE\" == \"darwin\"* ]]; then",
+  "    brew install git",
+  "  fi",
+  "else",
+  "  echo '✅ Git already installed'",
+  "fi",
+  "echo ''",
+  "echo 'Checking for Docker...'",
+  "if ! command -v docker &> /dev/null; then",
+  "  echo '⚠️  Docker not found. Please install Docker Desktop manually:'",
+  "  echo '   - Linux: curl -fsSL https://get.docker.com | sh'",
+  "  echo '   - macOS: brew install --cask docker'",
+  "  echo '   - Windows: Download Docker Desktop'",
+  "else",
+  "  echo '✅ Docker already installed'",
+  "fi",
+  "echo ''",
+  "echo 'Checking for Vagrant...'",
+  "if ! command -v vagrant &> /dev/null; then",
+  "  echo '⚠️  Vagrant not found. Installing...'",
+  "  if [[ \"$OSTYPE\" == \"linux-gnu\"* ]]; then",
+  "    wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg",
+  "    echo \"deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main\" | sudo tee /etc/apt/sources.list.d/hashicorp.list",
+  "    sudo apt update && sudo apt install -y vagrant",
+  "  elif [[ \"$OSTYPE\" == \"darwin\"* ]]; then",
+  "    brew install --cask vagrant",
+  "  fi",
+  "else",
+  "  echo '✅ Vagrant already installed'",
+  "fi",
+  "echo ''",
+  "echo 'Checking for VirtualBox...'",
+  "if ! command -v VBoxManage &> /dev/null; then",
+  "  echo '⚠️  VirtualBox not found. Installing...'",
+  "  if [[ \"$OSTYPE\" == \"linux-gnu\"* ]]; then",
+  "    sudo apt update && sudo apt install -y virtualbox",
+  "  elif [[ \"$OSTYPE\" == \"darwin\"* ]]; then",
+  "    brew install --cask virtualbox",
+  "  fi",
+  "else",
+  "  echo '✅ VirtualBox already installed'",
+  "fi"
+]
+
 [tasks.install-all]
 description = "Install all development tools"
 run = [
   "echo '🚀 Installing development environment...'",
   "mise install",
-  "echo '✅ All tools installed successfully!'"
+  "mise run install-system-tools",
+  "echo '✅ Installation completed!'"
 ]
 
 [tasks.status]
@@ -43,6 +85,7 @@ description = "Show status of all tools"
 run = [
   "echo '=== Development Environment Status ==='",
   "echo ''",
+  "echo '📦 Mise-managed tools:'",
   "mise ls --current",
   "echo ''",
   "echo '=== Tool Versions ==='",
@@ -51,7 +94,9 @@ run = [
   "git --version || echo '❌ Git not available'",
   "docker --version 2>/dev/null || echo '❌ Docker not running'",
   "vagrant --version 2>/dev/null || echo '❌ Vagrant not available'",
+  "VBoxManage --version 2>/dev/null || echo '❌ VirtualBox not available'",
   "aws --version 2>&1 | head -1 || echo '❌ AWS CLI not available'",
+  "jq --version 2>&1 || echo '❌ JQ not available'",
   "echo '================================='"
 ]
 
@@ -60,12 +105,15 @@ description = "Show Java environment information"
 run = [
   "echo '☕ Java Environment'",
   "echo '=================='",
-  "echo 'JAVA_HOME: $JAVA_HOME'",
+  "which java",
   "echo 'Java Version:'",
   "java -version",
   "echo ''",
   "echo 'Java Compiler:'", 
-  "javac -version"
+  "javac -version",
+  "echo ''",
+  "echo 'Java Installation Path:'",
+  "mise where java 2>/dev/null || echo 'Managed by mise'"
 ]
 
 [tasks.maven-info]
@@ -73,10 +121,13 @@ description = "Show Maven environment information"
 run = [
   "echo '📦 Maven Environment'",
   "echo '==================='",
-  "echo 'MAVEN_HOME: $MAVEN_HOME'",
+  "which maven || which mvn",
   "echo 'MAVEN_OPTS: $MAVEN_OPTS'",
   "echo 'Maven Version:'",
-  "mvn -version"
+  "mvn -version",
+  "echo ''",
+  "echo 'Maven Installation Path:'",
+  "mise where maven 2>/dev/null || echo 'Managed by mise'"
 ]
 
 [tasks.create-java-project]
